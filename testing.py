@@ -9,7 +9,6 @@ trdata = np.load('x_train.npy')
 def create_power_spectra(data):
     new_data = []
     for ex in data:
-        ex = np.delete(ex, [0,1,2,3,4,6,7,8,9,10,11,12,13,14,15,16,17,18], 0)
         new_data.append([])
         for ch in ex:
             yf = fft(ch)
@@ -26,5 +25,5 @@ test = create_power_spectra(tedata)
 print(test.shape)
 
 
-np.save("x_train_power_bad_removed_2", train)
-np.save("x_test_power_bad_removed_2", test)
+np.save("x_train_power", train)
+np.save("x_test_power", test)
