@@ -13,3 +13,7 @@ Conv Model Single - Takes in single channel data using the same convolutional ne
 Testing.py - Converts time series data to fourier transformed data
 
 Siezure_CNN - Jupyter notebook that contains a more descriptive version of prior models
+
+X_Test/train_power - train/test values of input data. Uses the power spectrum of the raw data (FFT transformed data)
+
+Y_test/train_power - test/train labels. Take values 0, 1, 2, 3
