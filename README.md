@@ -56,20 +56,74 @@ There were many advantages associated with using this particular dataset apart f
 - Data was publicly available, and well documented. 
 
 
-4. Methods 
+### Methods 
 
 The first step of the analysis was to maintain the temporal integrity of the data by keeping it in a time domain, and running it through models that may be able to capture the sequential dependence of the signaals such as LSTMs and RNNs. However, we found that it took a long time, and was performing poorly as defined by the state of the art classifiers on other datasets. Hence, we performed a fast fourier transform on our data, and ran it through a simple two-layer artificial neural network. By using a FFT and keeping signals within the 1 Hz - 70 Hz range, we reshaped the input dimension from 19x500 to 19x70. The output dimensions remained the same - 1x4. Subsequently, we augmented our ANN with two, 1-D convolutional layers, since current literature shows 1-D convolutions work well to featurize signals, including audio signals, EEG signals, PPGa signals etc. Finally, we tested each channel of data individually to see their impact on classification accuracy. We used the same CNN model created before, however, we reshaped some of the hidden layers in order to make them work correctly with the altered input dimension (input changed from 19x70 to 1x70). 
 
 We designed our neural network models using pyTorch. Fig 2 shows the architecture of our models, procured using the torch summary package. Since this project was exploratory in nature, we tried to keep our networks as basic as possible. 
 
-
-Fig 2: ANN and CNN summary
 ![image2](https://user-images.githubusercontent.com/12428554/225136882-5b17f103-58d1-449a-b479-38a1261effe3.png)
+![image3](https://user-images.githubusercontent.com/12428554/225137674-e46437b5-67fb-424a-94d3-77f6471123fa.png)
+
 
 Our computational analysis tools included sklearn’s test-train split to creature custom split ratios, and its confusion matrix to visualize the accuracy, recall, and precision. We trained all our models on 10 epochs to generate consistent results across our neural networks, and used the accuracy metric with microsoft excel to create a bubble chart to indicate the predictive power of individual channels (more in results section). 
 
 ### Results 
-Our three main results include our ANN, our CNN, and our single channel analysis. For all architectures and models, we used a learning rate of 0.001, and a batch size of 1 for the sake of consistency. Our ANN model functioned as our baseline model. It performed reasonably well. Fig 4 shows the confusion matrix received from the network. The overall accuracy was 86%. 
+Our three main results include our ANN, our CNN, and our single channel analysis. For all architectures and models, we used a learning rate of 0.001, and a batch size of 1 for the sake of consistency. Our ANN model functioned as our baseline model. It performed reasonably well. Fig 4 shows the confusion matrix received from the network. The overall accuracy was 86%. After adding convolutional layers to our model, we received a far higher accuracy of around 96% (Fig 5). 
+![image4](https://user-images.githubusercontent.com/12428554/225137757-9bdc09d6-b26b-4dd6-ba85-69bfe67f6463.png)
+![image5](https://user-images.githubusercontent.com/12428554/225137772-05da958b-7aa1-4e89-b85e-d2ca670b89c2.png)
+
+Finally, Fig 6 shows the positions of each of the electrodes on the brain, and Fig 7. Is a similarly laid out bubble chart of the corresponding single channels in classification of the dataset. 
+
+![image6](https://user-images.githubusercontent.com/12428554/225137894-27d40fa3-0d70-4ce7-a89f-a9db1eaf5e3e.png)
+
+As seen, the channels with the most predictive power are those that record data from the central gyrus, the temporal lobe and the frontal lobe. More specifically, areas A1, A2, T3, C4, T6, F8 had very high classification power. Individually, the channels had an accuracy that ranged between 70%-80%.
+
+![image7](https://user-images.githubusercontent.com/12428554/225137964-a4a3612d-8072-43d7-9faa-61de727ad1f8.png)
+
+Finally, for our last step, we built a model that used only the best 6 channels that had a high spatial coverage to incorporate signals from all areas of the brain. Using this model we received an accuracy of 93% (Fig 8). 
+
+![image8](https://user-images.githubusercontent.com/12428554/225137984-9ce8007d-b6d2-442e-aa20-5f7cb0fbf088.png)
+
+### Discussion 
+
+#### ANN
+
+From our baseline model, we had pretty good accuracy going forward. However, from figure 4, it can be seen that most of the misclassifications occur when classifying video detected seizures as normal EEG signals. This is expected, since video detected seizures have no visible change in the EEG signal, and to the human eye they look very similar to normal EEG signals. Hence, a standard model misclassifies it around 50% of the time as normal/no seizure.
+
+#### CNN
+
+Although our main motivation for selecting 1-D convolutions was their prevalence in literature for classifying similar signals, we also noticed that handcrafted features (FFT) were not sufficient for dealing with video detected seizures. CNN’s have the ability to generate latent features using filters and convolutions, so we expected it to be able to pick up finer differences in signals that allowed it to discriminate between normal EEG data and video detected seizures. We were proven correct, since accuracy specifically for video detected seizures with no visible change in EEG went from 56% to 88%. It is also interesting to notice that video detected seizures were never misclassified as normal cases anymore. This is very useful, since it is better to classify seizure instances as a different kind of seizure than no seizure for diagnostic purposes. 
+
+#### Single Channel Analysis 
+
+By performing a single channel analysis, we can interpret the results of our model to apply them to a clinically relevant setting. 
+ 
+These results can give us an insight into where in the brain seizures occur. They suggest that significant differences in electrical activity occur in the central gyrus, temporal lobe, and frontal lobe during a seizure.  Furthermore, if we had to build a network with data from hardware that used fewer channels, we would now know where to place these electrodes to maximize classification accuracy of the model.
+
+#### Shortcomings 
+There were a few shortcomings with our dataset and model. The first was that we only trained our models for 10 epochs for the sake of time, and the accuracy was still increasing and not yet converging. Secondly, the dataset contained far more data points that were normal data than seizure data as there were only 35 occurences of seizures. So, we should have used some sort of oversampling methods to account for this and to prevent the model from being biased.
+
+When creating a model that used fewer channels, we decided to use the 6 top performing channels that had a high spatial coverage. However, there may be another combination of channels that when used together provide an even greater classification accuracy. To verify this, we should do further experimentation.
+Conclusion
+Our best performing model was able to classify high resolution EEG data quite accurately (a maximum of 95%), and achieve a similar accuracy using lower dimensional data. For seizure classification tasks, we believe that FFT/CNN methods are more effective than time series/RNN methods, although the clinical significance of working with seizure data is more skewed toward predictive tasks that require sequential methods. 
+
+Hence, the first area of future work is in the prediction of seizures. Knowing whether or not a seizure is occurring in real-time provides valuable information, however it is more useful to know whether one will occur in the near future in order to take preemptive action. Along with this, hardware improvements could lead to even higher resolution data with fewer channels. 
+### References
+
+Dataset: Epileptic EEG Dataset - Mendeley Data 
+
+GitHub Repository: https://github.com/Mraj23/seizure_prediction.git 
+
+[1] Gastaut, Henri, and Benjamin G. Zifkin. “The Risk of Automobile Accidents with Seizures Occurring While Driving: Relation to Seizure Type.” Neurology, vol. 37, no. 10, 1 Oct. 1987, pp. 1613–1613, n.neurology.org/content/37/10/1613, 10.1212/WNL.37.10.1613. Accessed 8 May 2022.
+
+[2] Kim, Taeho, et al. “Epileptic Seizure Detection and Experimental Treatment: A Review.” Frontiers in Neurology, vol. 11, 21 July 2020, 10.3389/fneur.2020.00701.
+
+[3] M. -P. Hosseini, H. Soltanian-Zadeh, K. Elisevich and D. Pompili, "Cloud-based deep learning of big EEG data for epileptic seizure prediction," 2016 IEEE Global Conference on Signal and Information Processing (GlobalSIP), 2016, pp. 1151-1155, doi: 10.1109/GlobalSIP.2016.7906022.
+
+[4] Obeid, I., & Picone, J. (2016). The Temple University Hospital EEG Data corpus. Frontiers in Neuroscience, 10. https://doi.org/10.3389/fnins.2016.00196 
+
+
 
 
 
